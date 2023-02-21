@@ -5,6 +5,28 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+// const sentiment = {
+//   model: "text-davinci-003",
+//   prompt: "Classify the sentiment in these tweets:\n\n1. \"I can't stand homework\"\n2. \"This sucks. I'm bored 😠\"\n3. \"I can't wait for Halloween!!!\"\n4. \"My cat is adorable ❤️❤️\"\n5. \"I hate chocolate\"\n\nTweet sentiment ratings:",
+//   temperature: 0,
+//   max_tokens: 60,
+//   top_p: 1,
+//   frequency_penalty: 0,
+//   presence_penalty: 0,
+// };
+
+
+const conversion = {
+  model: "text-davinci-003",
+  prompt: "The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?\nHuman: AMZN stocks\n\nAI:",
+  temperature: 0.9,
+  max_tokens: 150,
+  top_p: 1,
+  frequency_penalty: 0,
+  presence_penalty: 0.6,
+  stop: [" Human:", " AI:"],
+}
+
 export default async function (req, res) {
   if (!configuration.apiKey) {
     res.status(500).json({
@@ -15,24 +37,33 @@ export default async function (req, res) {
     return;
   }
 
-  const animal = req.body.animal || '';
-  if (animal.trim().length === 0) {
-    res.status(400).json({
-      error: {
-        message: "Please enter a valid animal",
-      }
-    });
-    return;
-  }
+  // const animal = req.body.animal || '';
+  // if (animal.trim().length === 0) {
+  //   res.status(400).json({
+  //     error: {
+  //       message: "Please enter a valid animal",
+  //     }
+  //   });
+  //   return;
+  // }
+
+  // const animal3 = {
+  //   model: "text-davinci-003",
+  //   prompt: generatePrompt(animal),
+  //   temperature: 0.6,
+  // }
 
   try {
-    const completion = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: generatePrompt(animal),
-      temperature: 0.6,
+    const completion = await openai.createCompletion(conversion);
+
+    let result = '';
+    completion.data.choices.forEach(choice => {
+      result = result + choice.text;
     });
-    res.status(200).json({ result: completion.data.choices[0].text });
-  } catch(error) {
+    console.log(result)
+    res.status(200).json({ result: result });
+    // res.status(200).json({ result: completion.data.choices[0].text });
+  } catch (error) {
     // Consider adjusting the error handling logic for your use case
     if (error.response) {
       console.error(error.response.status, error.response.data);
