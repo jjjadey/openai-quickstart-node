@@ -5,15 +5,6 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-// const sentiment = {
-//   model: "text-davinci-003",
-//   prompt: "Classify the sentiment in these tweets:\n\n1. \"I can't stand homework\"\n2. \"This sucks. I'm bored 😠\"\n3. \"I can't wait for Halloween!!!\"\n4. \"My cat is adorable ❤️❤️\"\n5. \"I hate chocolate\"\n\nTweet sentiment ratings:",
-//   temperature: 0,
-//   max_tokens: 60,
-//   top_p: 1,
-//   frequency_penalty: 0,
-//   presence_penalty: 0,
-// };
 
 export default async function (req, res) {
   if (!configuration.apiKey) {
@@ -25,11 +16,11 @@ export default async function (req, res) {
     return;
   }
 
-  const animal = req.body.animal || '';
-  if (animal.trim().length === 0) {
+  const question = req.body.question || '';
+  if (question.trim().length === 0) {
     res.status(400).json({
       error: {
-        message: "Please enter a valid animal",
+        message: "Please enter a valid question Input",
       }
     });
     return;
@@ -38,12 +29,22 @@ export default async function (req, res) {
   try {
     const completion = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt: generatePrompt(animal),
-      temperature: 0.6,
+      prompt: `The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?\nHuman:${question}\n\nAI:`,
+      temperature: 0.9,
+      max_tokens: 150,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0.6,
+      stop: [" Human:", " AI:"],
     });
 
-
-    res.status(200).json({ result: completion.data.choices[0].text });
+    let result = '';
+    completion.data.choices.forEach(choice => {
+      result = result + choice.text;
+    });
+    console.log(completion.data)
+    console.log(result)
+    res.status(200).json({ result: result });
   } catch (error) {
     // Consider adjusting the error handling logic for your use case
     if (error.response) {
@@ -58,17 +59,4 @@ export default async function (req, res) {
       });
     }
   }
-}
-
-function generatePrompt(animal) {
-  const capitalizedAnimal =
-    animal[0].toUpperCase() + animal.slice(1).toLowerCase();
-  return `Suggest three names for an animal that is a superhero.
-
-Animal: Cat
-Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
-Animal: Dog
-Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-Animal: ${capitalizedAnimal}
-Names:`;
 }
