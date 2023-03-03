@@ -26,10 +26,13 @@ export default async function (req, res) {
     return;
   }
 
+  // I want to eat korean BBQ  and ice-cream. After that I want to see sunset near the river.  please recommend cafe and restaurant near Wat mangkon MRT Thailand
   try {
     const completion = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt: `The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?\nHuman:${question}\n\nAI:`,
+      // prompt: `Human:${question}\n\nAI:`, //string
+      // prompt: `Human:${question}. return result into array of object form\n\nAI:`, //array
+      prompt: `Human:${question}. return result into array of object form {"id": number, "name": string, "location": string}\n\nAI:`, //set key
       temperature: 0.9,
       max_tokens: 150,
       top_p: 1,
@@ -43,7 +46,7 @@ export default async function (req, res) {
       result = result + choice.text;
     });
     console.log(completion.data)
-    console.log(result)
+
     res.status(200).json({ result: result });
   } catch (error) {
     // Consider adjusting the error handling logic for your use case
